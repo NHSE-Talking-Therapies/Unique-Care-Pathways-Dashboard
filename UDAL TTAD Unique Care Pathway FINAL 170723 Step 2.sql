@@ -1,3 +1,5 @@
+--Please note this information is experimental and it is only intended for use for management purposes.
+
 /****** Script for Unique Care Pathways Dashboard to produce the aggregated table for all graphs except the box plots ******/
 
 -----------------------------------------------------------------
