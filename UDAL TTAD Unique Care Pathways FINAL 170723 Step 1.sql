@@ -58,9 +58,9 @@ SET DATEFIRST 1
 PRINT @PeriodStart
 PRINT @PeriodEnd
 
--- When refreshing the dashboard each month, insert the latest month of data into [NHSE_Sandbox_MentalHealth].[dbo].[IAPT_Unique_Care_Pathway]
-IF OBJECT_ID('[MHDInternal].[DASHBOARD_TTAD_UCP_Base]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
---INSERT INTO [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
+-- When refreshing the dashboard each month, insert the latest month of data into [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
+--IF OBJECT_ID('[MHDInternal].[DASHBOARD_TTAD_UCP_Base]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
+INSERT INTO [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
 SELECT DISTINCT
 	-- Extract the month from the reporting period start date
 	CONVERT(date, '01' + DATENAME(m, l.ReportingPeriodStartDate) + ' ' + CAST(DATEPART(yyyy, l.ReportingPeriodStartDate) AS varchar)) as Month
@@ -718,7 +718,7 @@ SELECT DISTINCT
 	THEN 'Community Signposting'
 	ELSE NULL END) AS [UniqueCarePathway]
 
-INTO [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
+--INTO [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
 FROM [mesh_IAPT].[IDS101referral] r
 
 INNER JOIN [mesh_IAPT].[IDS001mpi] mpi ON r.recordnumber = mpi.recordnumber
@@ -746,7 +746,7 @@ UsePathway_Flag = 'True'
 AND IsLatest = 1
 
 --Defines the full time period included in the table
-AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, -32, @PeriodStart) AND @PeriodStart --For superstats monthly refresh, the offset should be set to 0 to just get the latest month
+AND l.[ReportingPeriodStartDate] BETWEEN DATEADD(MONTH, 0, @PeriodStart) AND @PeriodStart --For superstats monthly refresh, the offset should be set to 0 to just get the latest month
 	
 --Filters for at least 1 treatment session
 AND TreatmentCareContact_Count>0
