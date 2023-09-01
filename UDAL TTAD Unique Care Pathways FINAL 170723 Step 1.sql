@@ -58,7 +58,7 @@ SET DATEFIRST 1
 PRINT @PeriodStart
 PRINT @PeriodEnd
 
--- When refreshing the dashboard each month, insert the latest month of data into [NHSE_Sandbox_MentalHealth].[dbo].[IAPT_Unique_Care_Pathway]
+-- When refreshing the dashboard each month, insert the latest month of data into [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
 --IF OBJECT_ID('[MHDInternal].[DASHBOARD_TTAD_UCP_Base]') IS NOT NULL DROP TABLE [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
 INSERT INTO [MHDInternal].[DASHBOARD_TTAD_UCP_Base]
 SELECT DISTINCT
@@ -732,9 +732,13 @@ LEFT JOIN [UKHF_Demography].[Domains_Of_Deprivation_By_LSOA1] IMD ON mpi.LSOA = 
 LEFT JOIN [mesh_IAPT].[IDS201carecontact] a ON r.PathwayID = a.PathwayID AND a.AuditId = l.AuditId AND a.Unique_MonthID = l.Unique_MonthID
 LEFT JOIN [mesh_IAPT].[IDS202careactivity] c ON c.PathwayID = a.PathwayID AND c.AuditId = l.AuditId AND c.Unique_MonthID = l.Unique_MonthID AND a.[CareContactId] = c.[CareContactId] 
 
-LEFT JOIN [MHDInternal].[REFERENCE_CCG_2020_Lookup] ccg ON r.OrgIDComm = ccg.IC_CCG	
-LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON ccg.CCG21 = ch.Organisation_Code AND ch.Effective_To IS NULL
-LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON r.OrgID_Provider = ph.Organisation_Code AND ph.Effective_To IS NULL
+--Four tables joined to get Provider, Sub-ICB, ICB and Region codes and names
+LEFT JOIN [Internal_Reference].[ComCodeChanges] cc ON r.OrgIDComm = cc.Org_Code COLLATE database_default
+LEFT JOIN [Reporting].[Ref_ODS_Commissioner_Hierarchies_ICB] ch ON COALESCE(cc.New_Code, r.OrgIDComm) = ch.Organisation_Code COLLATE database_default 
+	AND ch.Effective_To IS NULL
+LEFT JOIN [Internal_Reference].[Provider_Successor] ps ON r.OrgID_Provider = ps.Prov_original COLLATE database_default
+LEFT JOIN [Reporting].[Ref_ODS_Provider_Hierarchies_ICB] ph ON COALESCE(ps.Prov_Successor, r.OrgID_Provider) = ph.Organisation_Code COLLATE database_default
+	AND ph.Effective_To IS NULL
 
 WHERE	
 --Filters for the latest data
